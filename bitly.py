@@ -1,3 +1,7 @@
+''' in 2011, bit.ly (a url shortening service) partnered with usa.gov
+    to provide a feed of anonymous data gathered from uses who shorten
+    links ending with .gov or .mil
+'''
 # start shell with '$ ipython --pylab'
 
 # set path to our data of interest
@@ -112,3 +116,27 @@ results.value_counts()[:8]
 cframe = frame[frame.a.notnull()]
 operating_system = np.where(cframe['a'].str.contains('Windows'), 'Windows', 'Not Windows')
 operating_system[:5]
+
+# let's now group the data by its time zone col and the list of 
+# operating systems
+by_tz_os = cframe.groupby(['tz', operating_system])
+
+# let's now find the group counts
+agg_counts = by_tz_os.size().unstack().fillna(0)
+agg_counts[:10]
+
+# now let's select top overall time zones by constructng an indirect index array
+# use to sort in ascending order
+indexer = agg_counts.sum(1).argsort()
+indexer[:10]
+
+# then use take to select rows in order and slice off last 10 rows
+count_subset = agg_counts.take(indexer)[-10:]
+count_subset
+
+# let's now output to a bar plot
+count_subset.plot(kind='barh', stacked=True)
+
+# let's normalize the rows to sum to 1 and replot
+normed_subset = count_subset.div(count_subset.sum(1), axis=0)
+normed_subset.plot(kind='barh', stacked=True)
