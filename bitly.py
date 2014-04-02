@@ -66,4 +66,49 @@ from collections import Counter
 counts = Counter(time_zones)
 counts.most_common(10)
 
-# counting time zones using pandas
+'''counting time zones using pandas'''
+# a DataFrame represents a table or spreadsheet of data
+from pandas import DataFrame, Series
+import pandas as pd; import numpy as np
+
+# creating a new frame from our records
+frame = DataFrame(records)
+# display frame
+frame
+
+# checking out time zones
+frame['tz'][:10]
+
+# frame['tz'] returns series object, has method value_counts 
+# that does what we need
+tz_counts = frame['tz'].value_counts()
+tz_counts[:10]
+
+# we're now going to fill in unknown and missing values in our data
+clean_tz = frame['tz'].fillna('Missing')
+clean_tz[clean_tz == ''] = 'Unknown'
+tz_counts = clean_tz.value_counts()
+tz_counts[:10]
+
+# let's make a horizontal bar plot
+tz_counts[:10].plot(kind='barh', rot=0)
+
+# another one of the fields contains information about browser, device,
+# or application that was used to perform the shortening
+frame['a'][1]
+frame['a'][50]
+frame['a'][51]
+
+# want to parse data in these 'agent' strings
+# we'll split off first token in string, corresponding to 
+# browser capability
+results = Series([x.split()[0] for x in frame.a.dropna()])
+results[:5]
+# let's see the top results
+results.value_counts()[:8]
+
+# let's say we want to decompose top time zones into Windows 
+# and not windows
+cframe = frame[frame.a.notnull()]
+operating_system = np.where(cframe['a'].str.contains('Windows'), 'Windows', 'Not Windows')
+operating_system[:5]
