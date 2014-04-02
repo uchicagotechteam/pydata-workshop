@@ -110,4 +110,31 @@ grouped.apply(get_top_amounts, 'contbr_employer', n=10)
 ''' Bucketing Donation Amounts '''
 # let's use the cut function to discretize contributor amounts into 
 # buckets by contribution size
-bins = np.array([0.])
+bins = np.array([0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000])
+labels = pd.cut(fec_mrbo.contb_receipt_amt, bins)
+
+# group data by name and bin label to get histogram of donation size 
+grouped = fec_mrbo.groupby(['cand_nm', labels])
+grouped.size().unstack(0)
+
+# can also sum contribution amounts and normalzie within buckets 
+# to visualize percentage of total donatiosn of each size by candidate
+bucket_sums = grouped.contb_receipt_amt.sum().unstack(0)
+bucket_sums
+# let's now normalize these sums
+normed_sums = bucket_sums.div(bucket_sums.sum(axis=1), axis=0)
+normed_sums
+# now let's plot this data
+normed_sums[:-2].plot(kind='barh', stacked=True)
+
+''' Donation Statistics by State '''
+# let's first aggregate data by candidate and state
+grouped = fec_mrbo.groupby(['cand_nm', contbr_st])
+totals = grouped.contb_receipt_amt.sum().unstack(0).fillna(0)
+totals = totals[totals.sum(1) > 100000]
+totals[:10]
+
+# if divide each row by total contb amt, we get relative percentage
+# of total donations by stat for each candidate
+percent = totals.div(totals.sum(1), axis=0)
+percent[:10]
